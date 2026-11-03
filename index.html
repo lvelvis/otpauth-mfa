@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta
+      name="description"
+      content="在浏览器本地解析 TOTP/HOTP 二维码并提取 Base32 密钥"
+    />
+    <title>MFA 二维码密钥提取</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">LOCAL ONLY · 本地解析</p>
+        <h1>MFA 二维码密钥提取</h1>
+        <p class="hero-copy">
+          上传或拖入 TOTP/HOTP 二维码图片，浏览器会在本地解析
+          <code>otpauth://</code> 内容。图片和密钥不会上传到服务器。
+        </p>
+      </header>
+
+      <section class="tool-card" aria-labelledby="upload-title">
+        <div class="section-heading">
+          <div>
+            <span class="step">01</span>
+            <h2 id="upload-title">选择口令二维码</h2>
+          </div>
+          <button id="clear-button" class="text-button" type="button" hidden>
+            清除
+          </button>
+        </div>
+
+        <label id="drop-zone" class="drop-zone" for="file-input">
+          <input
+            id="file-input"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+          />
+          <span class="upload-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img">
+              <path
+                d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+              />
+            </svg>
+          </span>
+          <span class="drop-title">点击选择图片，或拖放到这里</span>
+          <span class="drop-hint">PNG、JPEG、WebP 或 GIF，最大 15 MB</span>
+        </label>
+
+        <div id="preview-panel" class="preview-panel" hidden>
+          <img id="image-preview" alt="待解析的二维码预览" />
+          <div class="file-summary">
+            <strong id="file-name"></strong>
+            <span id="file-size"></span>
+          </div>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite">
+          等待选择图片
+        </p>
+      </section>
+
+      <section id="result-card" class="result-card" aria-labelledby="result-title" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="step success-step">02</span>
+            <h2 id="result-title">解析成功</h2>
+          </div>
+          <span id="result-type" class="success-badge">TOTP</span>
+        </div>
+
+        <div class="secret-block">
+          <label for="secret-output">Base32 密钥</label>
+          <div class="secret-row">
+            <input
+              id="secret-output"
+              type="password"
+              readonly
+              spellcheck="false"
+              autocomplete="off"
+              aria-describedby="secret-warning"
+            />
+            <button id="toggle-secret" class="icon-button" type="button">
+              显示
+            </button>
+            <button id="copy-secret" class="primary-button" type="button">
+              复制密钥
+            </button>
+          </div>
+          <p id="secret-warning" class="secret-warning">
+            此密钥等同于第二认证因素，请仅保存到受保护的密码管理器或密钥库。
+          </p>
+        </div>
+
+        <dl class="metadata-grid">
+          <div>
+            <dt>发行方</dt>
+            <dd id="issuer-output">—</dd>
+          </div>
+          <div>
+            <dt>账户</dt>
+            <dd id="account-output">—</dd>
+          </div>
+          <div>
+            <dt>算法</dt>
+            <dd id="algorithm-output">SHA1</dd>
+          </div>
+          <div>
+            <dt id="settings-label">位数 / 周期</dt>
+            <dd id="settings-output">6 位 / 30 秒</dd>
+          </div>
+        </dl>
+
+        <button id="copy-uri" class="secondary-button" type="button">
+          复制完整 otpauth URI
+        </button>
+      </section>
+
+      <aside class="security-note">
+        <strong>安全提示</strong>
+        <p>
+          请勿上传到在线二维码识别网站，也不要把密钥提交到 Git、工单或聊天记录。
+          如果二维码曾经公开，应在原系统中重置 MFA。
+        </p>
+      </aside>
+    </main>
+
+    <canvas id="decode-canvas" hidden></canvas>
+  </body>
+</html>
